@@ -1,63 +1,25 @@
 "use client";
 
-import { useState, SyntheticEvent } from "react";
+import { useState } from "react";
 import { Search, Plus, AlertCircle, ChevronRight, Edit2, Trash2 } from "lucide-react";
-import { Student, StudentRequest, BillingType } from "@/types/Student";
+import { Student, BillingType } from "@/types/Student";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { useStudents } from "@/hooks/useStudents";
+import { NewStudentModal } from "@/components/new-student-modal";
 
 export default function StudentsPage() {
     const { students, metrics, isLoading, isSaving, search, setSearch, saveStudent, deleteStudent } = useStudents();
 
-    const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [formData, setFormData] = useState<StudentRequest>({
-        name: "",
-        subject: "",
-        active: true,
-        billingType: BillingType.MONTHLY,
-        creditBalance: 0,
-    });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
     const getInitials = (name: string) => name.charAt(0).toUpperCase();
 
-    const openSheet = (student?: Student) => {
-        if (student) {
-            setEditingId(student.id);
-            setFormData({
-                name: student.name,
-                subject: student.subject,
-                active: student.active,
-                billingType: student.billingType,
-                creditBalance: student.creditBalance,
-            });
-        } else {
-            setEditingId(null);
-            setFormData({
-                name: "",
-                subject: "",
-                active: true,
-                billingType: BillingType.MONTHLY,
-                creditBalance: 0,
-            });
-        }
-        setIsSheetOpen(true);
-    };
-
-    const handleSubmit = async (e: SyntheticEvent) => {
-        e.preventDefault();
-        const payload: StudentRequest = {
-            ...formData,
-            creditBalance: formData.billingType === BillingType.CREDIT_PACKAGE ? Number(formData.creditBalance) : 0
-        };
-
-        await saveStudent(editingId, payload);
-        setIsSheetOpen(false);
+    const openModal = (student?: Student) => {
+        setEditingStudent(student || null);
+        setIsModalOpen(true);
     };
 
     return (
@@ -67,7 +29,7 @@ export default function StudentsPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Alunos</h1>
                     <p className="text-muted-foreground mt-1">Gerencie seus alunos e créditos</p>
                 </div>
-                <Button onClick={() => openSheet()} className="shrink-0 gap-2">
+                <Button onClick={() => openModal()} className="shrink-0 gap-2">
                     <Plus className="size-4" /> Novo Aluno
                 </Button>
             </div>
@@ -160,7 +122,7 @@ export default function StudentsPage() {
                                     </div>
 
                                     <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
-                                        <Button variant="ghost" size="icon" className="size-8" onClick={() => openSheet(student)}>
+                                        <Button variant="ghost" size="icon" className="size-8" onClick={() => openModal(student)}>
                                             <Edit2 className="size-4 text-muted-foreground hover:text-foreground" />
                                         </Button>
                                         <Button variant="ghost" size="icon" className="size-8" onClick={() => deleteStudent(student.id)}>
@@ -175,83 +137,13 @@ export default function StudentsPage() {
                 )}
             </div>
 
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent className="sm:max-w-md">
-                    <SheetHeader>
-                        <SheetTitle>{editingId ? "Editar Aluno" : "Novo Aluno"}</SheetTitle>
-                    </SheetHeader>
-
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-6 py-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Nome Completo</Label>
-                            <Input
-                                id="name"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="subject">Matéria</Label>
-                            <Input
-                                id="subject"
-                                placeholder="Ex: Matemática, Inglês..."
-                                value={formData.subject}
-                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="billingType">Modelo de Cobrança</Label>
-                            <select
-                                id="billingType"
-                                className="flex h-9 w-full min-w-0 rounded-md border border-input bg-input-background px-3 py-1 text-base text-foreground shadow-sm transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm"
-                                value={formData.billingType}
-                                onChange={(e) => setFormData({ ...formData, billingType: e.target.value as BillingType })}
-                            >
-                                <option value={BillingType.MONTHLY}>Mensalidade Fixa</option>
-                                <option value={BillingType.CREDIT_PACKAGE}>Pacote de Créditos</option>
-                            </select>
-                        </div>
-
-                        {formData.billingType === BillingType.CREDIT_PACKAGE && (
-                            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                                <Label htmlFor="creditBalance">Saldo Inicial de Créditos</Label>
-                                <Input
-                                    id="creditBalance"
-                                    type="number"
-                                    min="0"
-                                    value={formData.creditBalance}
-                                    onChange={(e) => setFormData({ ...formData, creditBalance: Number(e.target.value) })}
-                                    required
-                                />
-                            </div>
-                        )}
-
-                        <div className="flex items-center space-x-2 pt-2">
-                            <Checkbox
-                                id="active"
-                                checked={formData.active}
-                                onCheckedChange={(checked) => setFormData({ ...formData, active: checked === true })}
-                            />
-                            <Label htmlFor="active" className="font-normal cursor-pointer">
-                                Aluno Ativo no Sistema
-                            </Label>
-                        </div>
-
-                        <SheetFooter className="mt-auto">
-                            <Button type="button" variant="outline" onClick={() => setIsSheetOpen(false)}>
-                                Cancelar
-                            </Button>
-                            <Button type="submit" disabled={isSaving}>
-                                {isSaving ? "Salvando..." : "Salvar"}
-                            </Button>
-                        </SheetFooter>
-                    </form>
-                </SheetContent>
-            </Sheet>
+            <NewStudentModal
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={saveStudent}
+                initialData={editingStudent}
+                isSaving={isSaving}
+            />
         </div>
     );
 }
