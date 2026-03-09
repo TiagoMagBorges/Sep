@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Download, FileText, CalendarIcon, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download, FileText, CalendarIcon, AlertCircle, TrendingDown, BookOpen, ShieldAlert } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -11,9 +11,25 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 import { api } from "@/services/api";
 import { useStudents } from "@/hooks/useStudents";
+
+interface LessonNote {
+    date: string;
+    note: string;
+}
+
+interface ProfessorAnalytics {
+    studentId: string;
+    studentName: string;
+    totalLessons: number;
+    attendedLessons: number;
+    missedLessons: number;
+    attendanceRate: number;
+    privateNotes: LessonNote[];
+}
 
 export default function ReportsPage() {
     const [reportType, setReportType] = useState<"student" | "class">("student");
@@ -23,8 +39,14 @@ export default function ReportsPage() {
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [internalAnalytics, setInternalAnalytics] = useState<ProfessorAnalytics | null>(null);
 
     const { students, isLoading: isLoadingStudents } = useStudents();
+
+    // Limpa o relatório interno se os filtros mudarem
+    useEffect(() => {
+        setInternalAnalytics(null);
+    }, [selectedEntity, startDate, endDate]);
 
     const handleGenerateExternalPDF = async () => {
         if (!selectedEntity || !startDate || !endDate) return;
@@ -56,18 +78,37 @@ export default function ReportsPage() {
             link.parentNode?.removeChild(link);
             window.URL.revokeObjectURL(url);
         } catch (err) {
-            setError("Falha ao gerar o relatório. Verifique se o aluno possui aulas no período.");
+            setError("Falha ao gerar o relatório PDF. Verifique se o aluno possui aulas no período.");
         } finally {
             setIsGenerating(false);
         }
     };
 
-    const handleGenerateInternalReport = () => {
-        alert("A geração de relatório interno (notas privadas) será implementada em uma US futura.");
+    const handleGenerateInternalReport = async () => {
+        if (!selectedEntity || !startDate || !endDate) return;
+
+        setIsGenerating(true);
+        setError(null);
+        setInternalAnalytics(null);
+
+        try {
+            const startStr = format(startDate, "yyyy-MM-dd");
+            const endStr = format(endDate, "yyyy-MM-dd");
+
+            const response = await api.get<ProfessorAnalytics>(`/analytics/student/${selectedEntity}`, {
+                params: { start: startStr, end: endStr }
+            });
+
+            setInternalAnalytics(response.data);
+        } catch (err) {
+            setError("Falha ao gerar o relatório gerencial. Tente novamente.");
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="space-y-6 max-w-4xl mx-auto pb-10">
             <div>
                 <h1 className="text-3xl font-semibold text-gray-900 mb-2">Relatórios</h1>
                 <p className="text-gray-600">
@@ -173,7 +214,7 @@ export default function ReportsPage() {
                                     disabled={!selectedEntity || !startDate || !endDate || isGenerating}
                                 >
                                     <Download className="mr-2 size-4" />
-                                    {isGenerating ? "Processando..." : "Gerar PDF (Visão Externa)"}
+                                    {isGenerating && !internalAnalytics ? "Processando..." : "Gerar PDF (Visão Externa)"}
                                 </Button>
                                 <p className="text-sm text-gray-600 px-1">
                                     Relatório formatado para compartilhar com alunos e responsáveis.
@@ -191,13 +232,13 @@ export default function ReportsPage() {
                                     Gerar Relatório Interno (Professor)
                                 </Button>
                                 <p className="text-sm text-gray-600 px-1">
-                                    Relatório completo incluindo notas privadas e métricas detalhadas.
+                                    Visão gerencial em tela incluindo notas privadas e análise de evasão.
                                 </p>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {selectedEntity && startDate && endDate && (
+                    {selectedEntity && startDate && endDate && !internalAnalytics && (
                         <Card className="bg-muted/30 border-dashed">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-lg">Preview da Seleção</CardTitle>
@@ -218,16 +259,89 @@ export default function ReportsPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="bg-blue-50 text-blue-800 p-3 rounded-md text-xs border border-blue-200">
-                                        <AlertCircle className="size-4 inline mr-1 -mt-0.5" />
-                                        As métricas detalhadas de presença e logs serão calculadas automaticamente no documento final.
-                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
                     )}
                 </div>
             </div>
+
+            {/* Painel de Analytics Interno (Apenas para o Professor) */}
+            {internalAnalytics && (
+                <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <h2 className="text-2xl font-bold border-b pb-2 flex items-center gap-2">
+                        <ShieldAlert className="size-6 text-primary" />
+                        Visão Gerencial: {internalAnalytics.studentName}
+                    </h2>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Card className="shadow-sm">
+                            <CardContent className="p-4 text-center">
+                                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Total de Aulas</p>
+                                <p className="text-3xl font-bold">{internalAnalytics.totalLessons}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="shadow-sm">
+                            <CardContent className="p-4 text-center">
+                                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Presenças</p>
+                                <p className="text-3xl font-bold text-green-600">{internalAnalytics.attendedLessons}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className={`shadow-sm ${internalAnalytics.missedLessons > 2 ? 'border-red-300 bg-red-50/30' : ''}`}>
+                            <CardContent className="p-4 text-center">
+                                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Faltas</p>
+                                <p className={`text-3xl font-bold ${internalAnalytics.missedLessons > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                    {internalAnalytics.missedLessons}
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card className="shadow-sm">
+                            <CardContent className="p-4 text-center">
+                                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Taxa de Presença</p>
+                                <p className={`text-3xl font-bold ${internalAnalytics.attendanceRate < 75 ? 'text-orange-500' : 'text-primary'}`}>
+                                    {internalAnalytics.attendanceRate.toFixed(1)}%
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {internalAnalytics.attendanceRate < 75 && internalAnalytics.totalLessons > 0 && (
+                        <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex items-start gap-3">
+                            <TrendingDown className="size-5 text-orange-600 shrink-0 mt-0.5" />
+                            <div>
+                                <h4 className="font-semibold text-orange-900">Risco Alto de Churn (Evasão)</h4>
+                                <p className="text-sm text-orange-800">A taxa de presença está abaixo de 75%. É recomendável entrar em contato com os pais ou responsáveis para alinhar o engajamento.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <Card className="shadow-sm">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <BookOpen className="size-5 text-primary" /> Histórico de Notas Privadas
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {internalAnalytics.privateNotes.length === 0 ? (
+                                <p className="text-center text-muted-foreground py-6">Nenhuma nota privada registrada neste período.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {internalAnalytics.privateNotes.map((note, idx) => (
+                                        <div key={idx} className="p-4 bg-muted/40 rounded-lg border">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <Badge variant="secondary" className="font-mono text-xs">
+                                                    {format(new Date(note.date), "dd/MM/yyyy 'às' HH:mm")}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-sm whitespace-pre-wrap text-foreground/90">{note.note}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 }
