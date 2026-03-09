@@ -1,29 +1,29 @@
 export enum BillingType {
-    MENSALIDADE = 'MENSALIDADE',
-    PACOTE_CREDITOS = 'PACOTE_CREDITOS'
+    MONTHLY = 'MONTHLY',
+    CREDIT_PACKAGE = 'CREDIT_PACKAGE'
 }
 
 export interface Student {
     id: string;
-    nome: string;
-    materia: string;
-    ativo: boolean;
-    tipoCobranca: BillingType;
-    saldoCreditos: number;
+    name: string;
+    subject: string;
+    active: boolean;
+    billingType: BillingType;
+    creditBalance: number;
 }
 
 export interface StudentRequest {
-    nome: string;
-    materia: string;
-    ativo: boolean;
-    tipoCobranca: BillingType;
-    saldoCreditos: number;
+    name: string;
+    subject: string;
+    active: boolean;
+    billingType: BillingType;
+    creditBalance: number;
 }
 
-export interface StudentMetricas {
-    ativos: number;
-    creditosBaixos: number;
-    emDia: number;
+export interface StudentMetrics {
+    active: number;
+    lowCredits: number;
+    upToDate: number;
 }
 
 export interface PageableResponse<T> {

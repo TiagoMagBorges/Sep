@@ -1,19 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-    Calendar,
-    Users,
-    AlertCircle,
-    TrendingUp,
-    ChevronRight,
-    BookOpen,
-    Clock,
-} from "lucide-react";
+import { Calendar, Users, AlertCircle, TrendingUp, ChevronRight, BookOpen, Clock } from "lucide-react";
 import { api } from "@/services/api";
 import { DashboardSummary } from "@/types/Dashboard";
+import { Student } from "@/types/Student";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
+interface LessonPlaceholder {
+    id: string;
+    studentName: string;
+    subject: string;
+    time: string;
+    endTime: string;
+}
+
+interface PaymentPlaceholder {
+    id: string;
+    studentName: string;
+    description: string;
+    amount: number;
+    status: "pending" | "overdue";
+}
 
 export default function Dashboard() {
     const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -31,11 +40,11 @@ export default function Dashboard() {
         fetchSummary();
     }, []);
 
-    const todayClasses: any[] = [];
-    const upcomingClasses: any[] = [];
-    const students: any[] = [];
-    const lowCreditStudents: any[] = [];
-    const pendingPayments: any[] = [];
+    const todayClasses: LessonPlaceholder[] = [];
+    const upcomingClasses: LessonPlaceholder[] = [];
+    const students: Student[] = [];
+    const lowCreditStudents: Student[] = [];
+    const pendingPayments: PaymentPlaceholder[] = [];
 
     const formatCurrency = (value: number) =>
         new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -76,15 +85,15 @@ export default function Dashboard() {
                     <CardContent className="p-5">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm text-muted-foreground">Pgtos. Pendentes</span>
-                            <div className={`size-9 rounded-full flex items-center justify-center ${summary.pagamentosPendentes > 0 ? "bg-red-100" : "bg-muted"}`}>
-                                <AlertCircle className={`size-4 ${summary.pagamentosPendentes > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+                            <div className={`size-9 rounded-full flex items-center justify-center ${summary.pendingPayments > 0 ? "bg-red-100" : "bg-muted"}`}>
+                                <AlertCircle className={`size-4 ${summary.pendingPayments > 0 ? "text-destructive" : "text-muted-foreground"}`} />
                             </div>
                         </div>
-                        <p className={`text-2xl font-bold ${summary.pagamentosPendentes > 0 ? "text-destructive" : ""}`}>
-                            {formatCurrency(summary.pagamentosPendentes)}
+                        <p className={`text-2xl font-bold ${summary.pendingPayments > 0 ? "text-destructive" : ""}`}>
+                            {formatCurrency(summary.pendingPayments)}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {summary.pagamentosPendentes > 0 ? "Alunos em atraso" : "Tudo em dia"}
+                            {summary.pendingPayments > 0 ? "Alunos em atraso" : "Tudo em dia"}
                         </p>
                     </CardContent>
                 </Card>
@@ -97,9 +106,9 @@ export default function Dashboard() {
                                 <Calendar className="size-4 text-blue-600" />
                             </div>
                         </div>
-                        <p className="text-2xl font-bold text-primary">{summary.aulasNaSemana}</p>
+                        <p className="text-2xl font-bold text-primary">{summary.lessonsInWeek}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {summary.aulasNaSemana} agendadas na semana
+                            {summary.lessonsInWeek} agendadas na semana
                         </p>
                     </CardContent>
                 </Card>
@@ -112,7 +121,7 @@ export default function Dashboard() {
                                 <Users className="size-4 text-purple-600" />
                             </div>
                         </div>
-                        <p className="text-2xl font-bold text-purple-700">{summary.totalAlunosAtivos}</p>
+                        <p className="text-2xl font-bold text-purple-700">{summary.totalActiveStudents}</p>
                         <p className="text-xs text-muted-foreground mt-1">Neste mês</p>
                     </CardContent>
                 </Card>
