@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import Link from "next/link";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,11 @@ export default function PrivateLayout({ children }: { children: ReactNode }) {
                         <SidebarTrigger className="-ml-2" />
                         <h1 className="text-xl font-semibold">Dashboard</h1>
                     </div>
-                    <Button className="gap-2">
-                        <Plus className="size-4" />
-                        Nova Aula
+                    <Button asChild className="gap-2">
+                        <Link href="/schedule?new=true">
+                            <Plus className="size-4" />
+                            Nova Aula
+                        </Link>
                     </Button>
                 </header>
                 <main className="flex-1 overflow-y-auto p-8">

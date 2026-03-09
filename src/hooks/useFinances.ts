@@ -33,8 +33,7 @@ export function useFinances(start: string, end: string) {
         }
     }, [fetchFinances, start, end]);
 
-    const saveFinance = async (payload: any) => {
-        await api.post("/finances", payload);
+    const saveFinance = async () => {
         await fetchFinances();
     };
 

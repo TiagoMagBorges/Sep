@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Calendar, Users, AlertCircle, TrendingUp, ChevronRight, BookOpen, Clock } from "lucide-react";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import { api } from "@/services/api";
 import { DashboardSummary } from "@/types/Dashboard";
 import { BillingType } from "@/types/Student";
@@ -10,18 +11,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useStudents } from "@/hooks/useStudents";
 import { useSchedule } from "@/hooks/useSchedule";
+import { useFinances } from "@/hooks/useFinances";
 import Link from "next/link";
 
 export default function Dashboard() {
     const [summary, setSummary] = useState<DashboardSummary | null>(null);
-
     const [isLoadingSummary, setIsLoadingSummary] = useState(true);
 
-    const [currentDate] = useState(() => new Date());
+    const currentDate = useMemo(() => new Date(), []);
+
+    const startDate = useMemo(() => format(startOfMonth(currentDate), "yyyy-MM-dd"), [currentDate]);
+    const endDate = useMemo(() => format(endOfMonth(currentDate), "yyyy-MM-dd"), [currentDate]);
 
     const { students } = useStudents();
-
     const { lessons } = useSchedule(currentDate);
+    const { transactions } = useFinances(startDate, endDate);
 
     useEffect(() => {
         async function fetchSummary() {
@@ -37,18 +41,24 @@ export default function Dashboard() {
 
     const extractTime = (isoString: string) => new Date(isoString).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = currentDate.toISOString().split('T')[0];
 
     const todayClasses = lessons.filter(l => l.dateTime.startsWith(todayStr) && l.status === LessonStatus.SCHEDULED)
         .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
 
-    const upcomingClasses = lessons.filter(l => !l.dateTime.startsWith(todayStr) && new Date(l.dateTime) > new Date() && l.status === LessonStatus.SCHEDULED)
+    const upcomingClasses = lessons.filter(l => !l.dateTime.startsWith(todayStr) && new Date(l.dateTime) > currentDate && l.status === LessonStatus.SCHEDULED)
         .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
 
     const zeroedCreditStudents = students.filter(s => s.billingType === BillingType.CREDIT_PACKAGE && s.creditBalance <= 0);
     const lowCreditStudents = students.filter(s => s.billingType === BillingType.CREDIT_PACKAGE && s.creditBalance > 0 && s.creditBalance <= 3);
 
-    const pendingPayments: any[] = [];
+    const totalEarnings = transactions
+        .filter(t => t.status === "PAID")
+        .reduce((acc, t) => acc + t.amount, 0);
+
+    const pendingPaymentsList = transactions
+        .filter(t => t.status === "PENDING" || t.status === "OVERDUE")
+        .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
     const formatCurrency = (value: number) =>
         new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -61,7 +71,7 @@ export default function Dashboard() {
                 <div>
                     <h1 className="text-3xl font-bold">Bem-vindo de volta! 👋</h1>
                     <p className="text-muted-foreground mt-1 capitalize">
-                        {new Date().toLocaleDateString("pt-BR", {
+                        {currentDate.toLocaleDateString("pt-BR", {
                             weekday: "long",
                             year: "numeric",
                             month: "long",
@@ -80,8 +90,8 @@ export default function Dashboard() {
                                 <TrendingUp className="size-4 text-green-600" />
                             </div>
                         </div>
-                        <p className="text-2xl font-bold text-green-600">{formatCurrency(0)}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Das aulas concluídas</p>
+                        <p className="text-2xl font-bold text-green-600">{formatCurrency(totalEarnings)}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Neste mês</p>
                     </CardContent>
                 </Card>
 
@@ -243,7 +253,6 @@ export default function Dashboard() {
                 </Card>
 
                 <div className="space-y-4">
-                    {/* Alerta Incisivo: Créditos Zerados/Negativos */}
                     {zeroedCreditStudents.length > 0 && (
                         <Card className="border-red-300 bg-red-50 shadow-sm animate-pulse ring-2 ring-red-500/20">
                             <CardHeader className="pb-2">
@@ -296,8 +305,23 @@ export default function Dashboard() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {pendingPayments.length === 0 && (
+                            {pendingPaymentsList.length === 0 ? (
                                 <p className="text-sm text-red-800/70 text-center py-4">Nenhum pagamento pendente.</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {pendingPaymentsList.slice(0, 5).map(payment => (
+                                        <div key={payment.id} className="flex justify-between items-center text-sm border-b border-red-100/50 last:border-0 pb-2 last:pb-0">
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-red-900">{payment.studentName}</span>
+                                                <span className="text-[11px] text-red-700/70">Vencimento: {new Date(payment.dueDate).toLocaleDateString('pt-BR')}</span>
+                                            </div>
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-red-700 font-bold">{formatCurrency(payment.amount)}</span>
+                                                <span className="text-[10px] uppercase font-bold text-red-500">{payment.status === 'OVERDUE' ? 'Atrasado' : 'Pendente'}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
                         </CardContent>
                     </Card>
