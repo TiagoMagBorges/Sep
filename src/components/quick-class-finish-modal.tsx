@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle2, XCircle, Info, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -10,7 +10,7 @@ interface QuickClassFinishModalProps {
     classData: Lesson;
     open: boolean;
     onClose: () => void;
-    onStatusUpdate: (id: string, newStatus: LessonStatus) => Promise<void>;
+    onStatusUpdate: (id: string, newStatus: LessonStatus, publicLog: string, privateNotes: string) => Promise<void>;
 }
 
 export function QuickClassFinishModal({ classData, open, onClose, onStatusUpdate }: QuickClassFinishModalProps) {
@@ -19,21 +19,25 @@ export function QuickClassFinishModal({ classData, open, onClose, onStatusUpdate
     const [privateNotes, setPrivateNotes] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
+    useEffect(() => {
+        if (open) {
+            setPublicNotes(classData.publicLog || "");
+            setPrivateNotes(classData.privateNotes || "");
+            setStatus(classData.status === LessonStatus.CANCELED ? "missed" : "attended");
+        }
+    }, [open, classData]);
+
     const extractTime = (isoString: string) => new Date(isoString).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     const handleSave = async () => {
         setIsSaving(true);
         const newStatus = status === "attended" ? LessonStatus.COMPLETED : LessonStatus.CANCELED;
-        await onStatusUpdate(classData.id, newStatus);
-
+        await onStatusUpdate(classData.id, newStatus, publicNotes, privateNotes);
         setIsSaving(false);
         handleClose();
     };
 
     const handleClose = () => {
-        setPublicNotes("");
-        setPrivateNotes("");
-        setStatus("attended");
         onClose();
     };
 
@@ -62,7 +66,7 @@ export function QuickClassFinishModal({ classData, open, onClose, onStatusUpdate
                             <div className="text-right">
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                     <Clock className="size-3.5" />
-                                    <span>Agendada</span>
+                                    <span>{classData.status === LessonStatus.SCHEDULED ? 'Agendada' : classData.status === LessonStatus.COMPLETED ? 'Concluída' : 'Cancelada'}</span>
                                 </div>
                             </div>
                         </div>
@@ -88,7 +92,7 @@ export function QuickClassFinishModal({ classData, open, onClose, onStatusUpdate
                     {status === "attended" ? (
                         <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                             <Info className="size-5 text-blue-600 shrink-0 mt-0.5" />
-                            <p className="text-sm text-blue-800">Se o aluno usar pacote, o crédito será processado no back-end.</p>
+                            <p className="text-sm text-blue-800">1 crédito será deduzido automaticamente se o aluno utilizar pacote.</p>
                         </div>
                     ) : (
                         <div className="flex items-start gap-3 p-4 bg-orange-50 border border-orange-200 rounded-xl">

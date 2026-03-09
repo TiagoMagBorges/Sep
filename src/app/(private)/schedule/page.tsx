@@ -38,7 +38,7 @@ export default function SchedulePage() {
         setIsNewClassOpen(true);
     };
 
-    const handleStatusUpdate = async (id: string, newStatus: LessonStatus) => {
+    const handleStatusUpdate = async (id: string, newStatus: LessonStatus, publicLog: string, privateNotes: string) => {
         const lesson = lessons.find(l => l.id === id);
         if (!lesson) return;
 
@@ -46,7 +46,9 @@ export default function SchedulePage() {
             studentId: lesson.studentId,
             dateTime: lesson.dateTime,
             endTime: lesson.endTime,
-            status: newStatus
+            status: newStatus,
+            publicLog,
+            privateNotes
         };
 
         await saveLesson(id, payload);

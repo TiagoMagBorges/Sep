@@ -12,6 +12,8 @@ export interface Lesson {
     dateTime: string;
     endTime: string;
     status: LessonStatus;
+    publicLog?: string;
+    privateNotes?: string;
 }
 
 export interface LessonRequest {
@@ -19,4 +21,6 @@ export interface LessonRequest {
     dateTime: string;
     endTime: string;
     status: LessonStatus;
+    publicLog?: string;
+    privateNotes?: string;
 }
