@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Search, Plus, AlertCircle, ChevronRight, Edit2, Trash2 } from "lucide-react";
 import { Student, BillingType } from "@/types/Student";
 import { Button } from "@/components/ui/button";
@@ -86,53 +87,65 @@ export default function StudentsPage() {
                         const isNegativeOrZero = isPackage && student.creditBalance <= 0;
 
                         return (
-                            <div key={student.id} className="group flex items-center justify-between p-4 bg-card border rounded-xl shadow-sm hover:shadow-md transition-all">
-                                <div className="flex items-center gap-4">
-                                    <div className="size-12 rounded-full bg-muted flex items-center justify-center text-lg font-semibold text-muted-foreground shrink-0">
-                                        {getInitials(student.name)}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="font-semibold text-base">{student.name}</span>
-                                        <span className="text-sm text-muted-foreground">
-                                            {student.subject} • {student.active ? "Ativo" : "Inativo"}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-6">
-                                    <div className="flex flex-col items-end">
-                                        {isPackage ? (
-                                            <>
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`size-2 rounded-full ${isNegativeOrZero ? 'bg-red-600 animate-pulse' : hasLowCredits ? 'bg-orange-500' : 'bg-green-500'}`} />
-                                                    <span className={`font-semibold ${isNegativeOrZero ? 'text-red-600' : hasLowCredits ? 'text-orange-600' : 'text-green-700'}`}>
-                                                        {student.creditBalance} créditos
-                                                    </span>
-                                                </div>
-                                                {(hasLowCredits || isNegativeOrZero) && (
-                                                    <span className={`text-xs flex items-center gap-1 mt-0.5 ${isNegativeOrZero ? 'text-red-600 font-bold' : 'text-orange-500'}`}>
-                                                        <AlertCircle className="size-3" /> {isNegativeOrZero ? 'Crédito Esgotado' : 'Renovar em breve'}
-                                                    </span>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <span className="font-semibold text-muted-foreground bg-muted px-2.5 py-1 rounded-md text-sm">
-                                                Mensalidade
+                            <Link key={student.id} href={`/students/${student.id}`} className="block">
+                                <div className="group flex items-center justify-between p-4 bg-card border rounded-xl shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer">
+                                    <div className="flex items-center gap-4">
+                                        <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0">
+                                            {getInitials(student.name)}
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-base">{student.name}</span>
+                                            <span className="text-sm text-muted-foreground">
+                                                {student.subject} • {student.active ? "Ativo" : "Inativo"}
                                             </span>
-                                        )}
+                                        </div>
                                     </div>
 
-                                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
-                                        <Button variant="ghost" size="icon" className="size-8" onClick={() => openModal(student)}>
-                                            <Edit2 className="size-4 text-muted-foreground hover:text-foreground" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="size-8" onClick={() => deleteStudent(student.id)}>
-                                            <Trash2 className="size-4 text-destructive hover:text-destructive/80" />
-                                        </Button>
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex flex-col items-end hidden sm:flex">
+                                            {isPackage ? (
+                                                <>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`size-2 rounded-full ${isNegativeOrZero ? 'bg-red-600 animate-pulse' : hasLowCredits ? 'bg-orange-500' : 'bg-green-500'}`} />
+                                                        <span className={`font-semibold ${isNegativeOrZero ? 'text-red-600' : hasLowCredits ? 'text-orange-600' : 'text-green-700'}`}>
+                                                            {student.creditBalance} créditos
+                                                        </span>
+                                                    </div>
+                                                    {(hasLowCredits || isNegativeOrZero) && (
+                                                        <span className={`text-xs flex items-center gap-1 mt-0.5 ${isNegativeOrZero ? 'text-red-600 font-bold' : 'text-orange-500'}`}>
+                                                            <AlertCircle className="size-3" /> {isNegativeOrZero ? 'Renovar agora' : 'Renovar em breve'}
+                                                        </span>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <span className="font-semibold text-muted-foreground bg-muted px-2.5 py-1 rounded-md text-sm">
+                                                    Mensalidade
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="size-8"
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); openModal(student); }}
+                                            >
+                                                <Edit2 className="size-4 text-muted-foreground hover:text-foreground" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="size-8"
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteStudent(student.id); }}
+                                            >
+                                                <Trash2 className="size-4 text-destructive hover:text-destructive/80" />
+                                            </Button>
+                                        </div>
+                                        <ChevronRight className="size-5 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </div>
-                                    <ChevronRight className="size-5 text-muted-foreground opacity-50 ml-2" />
                                 </div>
-                            </div>
+                            </Link>
                         );
                     })
                 )}

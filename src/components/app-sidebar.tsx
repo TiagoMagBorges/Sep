@@ -45,23 +45,16 @@ export function AppSidebar() {
                 <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu className="gap-2">
-                            {items.map((item) => {
-                                const isActive = pathname === item.url;
-                                return (
-                                    <SidebarMenuItem key={item.title}>
-                                        <SidebarMenuButton
-                                            asChild
-                                            isActive={isActive}
-                                            className={isActive ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}
-                                        >
-                                            <Link href={item.url} className="flex items-center gap-3">
-                                                <item.icon className="size-5" />
-                                                <span className="font-medium">{item.title}</span>
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                );
-                            })}
+                            {items.map((item) => (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild isActive={pathname === item.url}>
+                                        <Link href={item.url} className="flex items-center gap-3">
+                                            <item.icon className="size-5" />
+                                            <span className="font-medium">{item.title}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
@@ -69,16 +62,16 @@ export function AppSidebar() {
             <SidebarFooter className="p-4 border-t border-border">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton className="w-full justify-between h-auto p-2">
+                        <SidebarMenuButton className="w-full justify-between h-auto p-2" onClick={signOut}>
                             <div className="flex items-center gap-3">
                                 <div className="size-8 rounded-full bg-accent flex items-center justify-center">
                                     <User2 className="size-4 text-muted-foreground" />
                                 </div>
                                 <div className="flex flex-col items-start text-sm">
-                                    <span className="font-medium">Prof. Tiago</span>
+                                    <span className="font-medium text-foreground">Prof. Tiago</span>
                                 </div>
                             </div>
-                            <LogOut className="size-4 text-muted-foreground hover:text-destructive cursor-pointer" onClick={signOut} />
+                            <LogOut className="size-4 text-muted-foreground" />
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
