@@ -8,6 +8,9 @@ export function useSchedule(currentDate: Date) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+
     const formatLocalISO = (date: Date) => {
         const pad = (n: number) => String(n).padStart(2, '0');
         return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
@@ -16,11 +19,8 @@ export function useSchedule(currentDate: Date) {
     const fetchLessons = useCallback(async () => {
         try {
             setIsLoading(true);
-            const y = currentDate.getFullYear();
-            const m = currentDate.getMonth();
-
-            const start = new Date(y, m, 1, 0, 0, 0);
-            const end = new Date(y, m + 1, 0, 23, 59, 59);
+            const start = new Date(currentYear, currentMonth, 1, 0, 0, 0);
+            const end = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
 
             const response = await api.get<Lesson[]>(`/lessons?start=${formatLocalISO(start)}&end=${formatLocalISO(end)}`);
             setLessons(response.data);
@@ -29,7 +29,7 @@ export function useSchedule(currentDate: Date) {
         } finally {
             setIsLoading(false);
         }
-    }, [currentDate]);
+    }, [currentYear, currentMonth]);
 
     useEffect(() => {
         fetchLessons();

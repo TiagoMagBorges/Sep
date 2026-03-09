@@ -31,7 +31,12 @@ export default function SettingsPage() {
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (profile) setFormData(profile);
+        if (profile) {
+            const timeoutId = setTimeout(() => {
+                setFormData(profile);
+            }, 0);
+            return () => clearTimeout(timeoutId);
+        }
     }, [profile]);
 
     const handleSaveProfile = async () => {

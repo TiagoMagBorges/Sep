@@ -43,7 +43,6 @@ export default function ReportsPage() {
 
     const { students, isLoading: isLoadingStudents } = useStudents();
 
-    // Limpa o relatório interno se os filtros mudarem
     useEffect(() => {
         setInternalAnalytics(null);
     }, [selectedEntity, startDate, endDate]);

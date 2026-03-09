@@ -35,7 +35,8 @@ import { useSchedule } from "@/hooks/useSchedule";
 import { LessonStatus } from "@/types/Lesson";
 
 export default function FinancesPage() {
-    const today = new Date();
+    const today = useMemo(() => new Date(), []);
+
     const [startDate, setStartDate] = useState(format(startOfMonth(today), "yyyy-MM-dd"));
     const [endDate, setEndDate] = useState(format(endOfMonth(today), "yyyy-MM-dd"));
     const [filterApplied, setFilterApplied] = useState(false);
@@ -388,7 +389,7 @@ export default function FinancesPage() {
                 </Card>
             </div>
 
-            <AddPaymentModal open={isAddPaymentModalOpen} onOpenChange={setIsAddPaymentModalOpen} />
+            <AddPaymentModal open={isAddPaymentModalOpen} onOpenChange={setIsAddPaymentModalOpen} onSave={saveFinance} />
         </div>
     );
 }

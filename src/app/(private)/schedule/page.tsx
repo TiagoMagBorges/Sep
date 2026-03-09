@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Plus, AlertCircle, LayoutGrid, List } from "lucide-react";
 import { api } from "@/services/api";
 import { useSchedule } from "@/hooks/useSchedule";
@@ -16,6 +17,9 @@ import { WeekGrid } from "@/components/schedule/week-grid";
 type ViewMode = 'month' | 'week';
 
 export default function SchedulePage() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<ViewMode>('week');
 
@@ -31,6 +35,16 @@ export default function SchedulePage() {
         api.get<PageableResponse<Student>>("/students?size=100")
             .then(res => setStudentsList(res.data.content));
     }, []);
+
+    useEffect(() => {
+        if (searchParams.get("new") === "true") {
+            const timeoutId = setTimeout(() => {
+                setIsNewClassOpen(true);
+                router.replace("/schedule");
+            }, 0);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [searchParams, router]);
 
     const handleGridClick = (date: Date, hour: number) => {
         setClickDate(date);
@@ -83,7 +97,7 @@ export default function SchedulePage() {
                             <LayoutGrid className="size-4" /> Mês
                         </Button>
                     </div>
-                    <Button onClick={() => handleGridClick(new Date(), 14)} className="gap-2">
+                    <Button onClick={() => { setClickDate(undefined); setClickTime(undefined); setIsNewClassOpen(true); }} className="gap-2">
                         <Plus className="size-4" /> Nova Aula
                     </Button>
                 </div>
