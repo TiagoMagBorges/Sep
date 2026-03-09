@@ -82,7 +82,8 @@ export default function StudentsPage() {
                 ) : (
                     students.map((student) => {
                         const isPackage = student.billingType === BillingType.CREDIT_PACKAGE;
-                        const hasLowCredits = isPackage && student.creditBalance <= 3;
+                        const hasLowCredits = isPackage && student.creditBalance <= 3 && student.creditBalance > 0;
+                        const isNegativeOrZero = isPackage && student.creditBalance <= 0;
 
                         return (
                             <div key={student.id} className="group flex items-center justify-between p-4 bg-card border rounded-xl shadow-sm hover:shadow-md transition-all">
@@ -103,14 +104,14 @@ export default function StudentsPage() {
                                         {isPackage ? (
                                             <>
                                                 <div className="flex items-center gap-2">
-                                                    <div className={`size-2 rounded-full ${hasLowCredits ? 'bg-red-500' : 'bg-green-500'}`} />
-                                                    <span className={`font-semibold ${hasLowCredits ? 'text-red-600' : 'text-green-700'}`}>
+                                                    <div className={`size-2 rounded-full ${isNegativeOrZero ? 'bg-red-600 animate-pulse' : hasLowCredits ? 'bg-orange-500' : 'bg-green-500'}`} />
+                                                    <span className={`font-semibold ${isNegativeOrZero ? 'text-red-600' : hasLowCredits ? 'text-orange-600' : 'text-green-700'}`}>
                                                         {student.creditBalance} créditos
                                                     </span>
                                                 </div>
-                                                {hasLowCredits && (
-                                                    <span className="text-xs text-red-500 flex items-center gap-1 mt-0.5">
-                                                        <AlertCircle className="size-3" /> Renovar agora
+                                                {(hasLowCredits || isNegativeOrZero) && (
+                                                    <span className={`text-xs flex items-center gap-1 mt-0.5 ${isNegativeOrZero ? 'text-red-600 font-bold' : 'text-orange-500'}`}>
+                                                        <AlertCircle className="size-3" /> {isNegativeOrZero ? 'Crédito Esgotado' : 'Renovar em breve'}
                                                     </span>
                                                 )}
                                             </>
