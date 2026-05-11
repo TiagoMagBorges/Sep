@@ -22,7 +22,6 @@ export function NewStudentModal({ open, onClose, onSave, initialData, isSaving }
     const [creditBalance, setCreditBalance] = useState("");
     const [active, setActive] = useState(true);
 
-    // Sincroniza os dados caso seja uma edição
     useEffect(() => {
         if (open) {
             if (initialData) {
@@ -141,7 +140,6 @@ export function NewStudentModal({ open, onClose, onSave, initialData, isSaving }
                         </Label>
                     </div>
 
-                    {/* Preview Resumo */}
                     {name && subject && (
                         <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
                             <p className="text-sm font-medium text-blue-900 mb-2">Resumo:</p>
