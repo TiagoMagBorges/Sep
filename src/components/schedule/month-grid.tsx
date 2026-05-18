@@ -55,16 +55,22 @@ export function MonthGrid({ currentDate, lessons, onGridClick, onLessonSelect }:
                                 {day}
                             </div>
                             <div className="flex-1 space-y-1 overflow-y-auto no-scrollbar">
-                                {dayLessons.slice(0, 3).map(lesson => (
-                                    <div
-                                        key={lesson.id}
-                                        onClick={(e) => { e.stopPropagation(); onLessonSelect(lesson); }}
-                                        className="text-[10px] px-1.5 py-1 rounded truncate transition-opacity hover:opacity-80 bg-blue-100 text-blue-800 border border-blue-200"
-                                        title={`${extractTime(lesson.dateTime)} - ${lesson.studentName}`}
-                                    >
-                                        <span className="font-semibold">{extractTime(lesson.dateTime)}</span> {lesson.studentName.split(' ')[0]}
-                                    </div>
-                                ))}
+                                {dayLessons.slice(0, 3).map(lesson => {
+                                    const displayName = lesson.studentName
+                                        ? lesson.studentName.split(' ')[0]
+                                        : (lesson.classGroupName || "Turma");
+
+                                    return (
+                                        <div
+                                            key={lesson.id}
+                                            onClick={(e) => { e.stopPropagation(); onLessonSelect(lesson); }}
+                                            className="text-[10px] px-1.5 py-1 rounded truncate transition-opacity hover:opacity-80 bg-blue-100 text-blue-800 border border-blue-200"
+                                            title={`${extractTime(lesson.dateTime)} - ${lesson.studentName || lesson.classGroupName}`}
+                                        >
+                                            <span className="font-semibold">{extractTime(lesson.dateTime)}</span> {displayName}
+                                        </div>
+                                    );
+                                })}
                                 {dayLessons.length > 3 && (
                                     <div className="text-[10px] text-muted-foreground text-center font-medium">
                                         +{dayLessons.length - 3} mais

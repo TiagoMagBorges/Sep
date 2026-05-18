@@ -1,27 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/services/api";
-
-export interface FinanceTransaction {
-    id: string;
-    studentId: string;
-    studentName: string;
-    amount: number;
-    dueDate: string;
-    status: "PAID" | "PENDING" | "OVERDUE";
-    description?: string;
-}
+import { Finance, FinanceRequest } from "@/types/Finance";
 
 export function useFinances(start: string, end: string) {
-    const [transactions, setTransactions] = useState<FinanceTransaction[]>([]);
+    const [transactions, setTransactions] = useState<Finance[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchFinances = useCallback(async () => {
         try {
             setIsLoading(true);
-            const response = await api.get<FinanceTransaction[]>(`/finances?start=${start}&end=${end}`);
+            const response = await api.get<Finance[]>(`/finances?start=${start}&end=${end}`);
             setTransactions(response.data);
         } catch (error) {
-            console.error("Erro ao buscar finanças:", error);
+            console.error(error);
         } finally {
             setIsLoading(false);
         }
@@ -33,8 +24,15 @@ export function useFinances(start: string, end: string) {
         }
     }, [fetchFinances, start, end]);
 
-    const saveFinance = async () => {
-        await fetchFinances();
+    const saveFinance = async (payload: FinanceRequest): Promise<boolean> => {
+        try {
+            await api.post("/finances", payload);
+            await fetchFinances();
+            return true;
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
     };
 
     return { transactions, isLoading, saveFinance, fetchFinances };
