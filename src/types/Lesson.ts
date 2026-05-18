@@ -6,8 +6,10 @@ export enum LessonStatus {
 
 export interface Lesson {
     id: string;
-    studentId: string;
-    studentName: string;
+    studentId?: string;
+    studentName?: string;
+    classGroupId?: string;
+    classGroupName?: string;
     subject: string;
     dateTime: string;
     endTime: string;
@@ -17,7 +19,8 @@ export interface Lesson {
 }
 
 export interface LessonRequest {
-    studentId: string;
+    studentId?: string;
+    classGroupId?: string;
     dateTime: string;
     endTime: string;
     status: LessonStatus;

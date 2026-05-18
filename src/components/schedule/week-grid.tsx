@@ -76,6 +76,10 @@ export function WeekGrid({ currentDate, lessons, onGridClick, onLessonSelect }: 
 
                                     if (topOffset < 0) return null;
 
+                                    const displayName = lesson.studentName
+                                        ? lesson.studentName.split(' ')[0]
+                                        : (lesson.classGroupName || "Turma");
+
                                     return (
                                         <div
                                             key={lesson.id}
@@ -83,7 +87,7 @@ export function WeekGrid({ currentDate, lessons, onGridClick, onLessonSelect }: 
                                             className="absolute left-1 right-1 rounded-md p-1.5 text-xs overflow-hidden cursor-pointer shadow-sm hover:ring-2 hover:ring-primary/50 transition-all bg-blue-100 text-blue-800 border border-blue-200 z-10"
                                             style={{ top: `${topOffset}px`, height: `${durationMins}px` }}
                                         >
-                                            <div className="font-semibold truncate">{lesson.studentName.split(' ')[0]}</div>
+                                            <div className="font-semibold truncate">{displayName}</div>
                                             <div className="text-[10px] opacity-80">{extractTime(lesson.dateTime)} - {extractTime(lesson.endTime)}</div>
                                         </div>
                                     );
