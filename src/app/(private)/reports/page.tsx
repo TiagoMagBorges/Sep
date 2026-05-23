@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Download, FileText, CalendarIcon, AlertCircle, TrendingDown, BookOpen, ShieldAlert } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -13,105 +13,63 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 
-import { api } from "@/services/api";
 import { useStudents } from "@/hooks/useStudents";
-
-interface LessonNote {
-    date: string;
-    note: string;
-}
-
-interface ProfessorAnalytics {
-    studentId: string;
-    studentName: string;
-    totalLessons: number;
-    attendedLessons: number;
-    missedLessons: number;
-    attendanceRate: number;
-    privateNotes: LessonNote[];
-}
+import { useReports } from "@/hooks/useReports";
+import { ReportType, ProfessorAnalytics } from "@/types/Report";
 
 export default function ReportsPage() {
-    const [reportType, setReportType] = useState<"student" | "class">("student");
+    const [reportType, setReportType] = useState<ReportType>("student");
     const [selectedEntity, setSelectedEntity] = useState("");
     const [startDate, setStartDate] = useState<Date>();
     const [endDate, setEndDate] = useState<Date>();
 
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [internalAnalytics, setInternalAnalytics] = useState<ProfessorAnalytics | null>(null);
 
     const { students, isLoading: isLoadingStudents } = useStudents();
 
-    useEffect(() => {
-        setInternalAnalytics(null);
-    }, [selectedEntity, startDate, endDate]);
+    const { isGenerating, error, setError, downloadPdfReport, fetchInternalAnalytics } = useReports();
+
+    const handleFilterChange = () => {
+        if (internalAnalytics !== null) setInternalAnalytics(null);
+        if (error !== null) setError(null);
+    };
 
     const handleGenerateExternalPDF = async () => {
         if (!selectedEntity || !startDate || !endDate) return;
 
-        setIsGenerating(true);
-        setError(null);
+        const studentName = students.find(s => s.id === selectedEntity)?.name.replace(/\s+/g, '_') || "aluno";
 
-        try {
-            const startStr = format(startDate, "yyyy-MM-dd");
-            const endStr = format(endDate, "yyyy-MM-dd");
-
-            const response = await api.get(`/reports/student/${selectedEntity}`, {
-                params: { start: startStr, end: endStr },
-                responseType: "blob"
-            });
-
-            const blob = new Blob([response.data], { type: "application/pdf" });
-            const url = window.URL.createObjectURL(blob);
-
-            const link = document.createElement("a");
-            link.href = url;
-
-            const studentName = students.find(s => s.id === selectedEntity)?.name.replace(/\s+/g, '_') || "aluno";
-            link.setAttribute("download", `relatorio_${studentName}_${startStr}.pdf`);
-
-            document.body.appendChild(link);
-            link.click();
-
-            link.parentNode?.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (err) {
-            setError("Falha ao gerar o relatório PDF. Verifique se o aluno possui aulas no período.");
-        } finally {
-            setIsGenerating(false);
-        }
+        await downloadPdfReport(
+            reportType,
+            startDate,
+            endDate,
+            selectedEntity,
+            `relatorio_${studentName}`
+        );
     };
 
     const handleGenerateInternalReport = async () => {
         if (!selectedEntity || !startDate || !endDate) return;
 
-        setIsGenerating(true);
-        setError(null);
-        setInternalAnalytics(null);
-
         try {
-            const startStr = format(startDate, "yyyy-MM-dd");
-            const endStr = format(endDate, "yyyy-MM-dd");
-
-            const response = await api.get<ProfessorAnalytics>(`/analytics/student/${selectedEntity}`, {
-                params: { start: startStr, end: endStr }
-            });
-
-            setInternalAnalytics(response.data);
+            const data = await fetchInternalAnalytics<ProfessorAnalytics>(
+                reportType,
+                startDate,
+                endDate,
+                selectedEntity
+            );
+            setInternalAnalytics(data);
         } catch (err) {
-            setError("Falha ao gerar o relatório gerencial. Tente novamente.");
-        } finally {
-            setIsGenerating(false);
+            console.error(err);
         }
     };
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto pb-10">
             <div>
-                <h1 className="text-3xl font-semibold text-gray-900 mb-2">Relatórios</h1>
-                <p className="text-gray-600">
-                    Gere relatórios detalhados para alunos e turmas
+                <h1 className="text-3xl font-semibold text-foreground mb-2">Relatórios</h1>
+                <p className="text-muted-foreground">
+                    Gere relatórios detalhados para alunos, turmas e finanças
                 </p>
             </div>
 
@@ -132,7 +90,15 @@ export default function ReportsPage() {
                             <div className="space-y-3">
                                 <Label>Tipo de Relatório</Label>
                                 <div className="flex flex-col space-y-2">
-                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                    <label
+                                        className="flex items-center space-x-2 cursor-pointer"
+                                        onClick={() => {
+                                            if (reportType !== 'student') {
+                                                setReportType('student');
+                                                handleFilterChange();
+                                            }
+                                        }}
+                                    >
                                         <div className={`size-4 rounded-full border flex items-center justify-center ${reportType === 'student' ? 'border-primary' : 'border-input'}`}>
                                             {reportType === 'student' && <div className="size-2.5 rounded-full bg-primary" />}
                                         </div>
@@ -149,7 +115,10 @@ export default function ReportsPage() {
                                 <Label>Selecionar Aluno</Label>
                                 <Select
                                     value={selectedEntity}
-                                    onValueChange={setSelectedEntity}
+                                    onValueChange={(val) => {
+                                        setSelectedEntity(val);
+                                        handleFilterChange();
+                                    }}
                                     disabled={isLoadingStudents}
                                 >
                                     <SelectTrigger>
@@ -172,11 +141,19 @@ export default function ReportsPage() {
                                         <PopoverTrigger asChild>
                                             <Button variant="outline" className="w-full justify-start text-left font-normal">
                                                 <CalendarIcon className="mr-2 size-4" />
-                                                {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : <span className="text-gray-500">Selecionar data</span>}
+                                                {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : <span className="text-muted-foreground">Selecionar data</span>}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
-                                            <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                                            <Calendar
+                                                mode="single"
+                                                selected={startDate}
+                                                onSelect={(date) => {
+                                                    setStartDate(date);
+                                                    handleFilterChange();
+                                                }}
+                                                initialFocus
+                                            />
                                         </PopoverContent>
                                     </Popover>
                                 </div>
@@ -187,11 +164,19 @@ export default function ReportsPage() {
                                         <PopoverTrigger asChild>
                                             <Button variant="outline" className="w-full justify-start text-left font-normal">
                                                 <CalendarIcon className="mr-2 size-4" />
-                                                {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : <span className="text-gray-500">Selecionar data</span>}
+                                                {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : <span className="text-muted-foreground">Selecionar data</span>}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
-                                            <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                                            <Calendar
+                                                mode="single"
+                                                selected={endDate}
+                                                onSelect={(date) => {
+                                                    setEndDate(date);
+                                                    handleFilterChange();
+                                                }}
+                                                initialFocus
+                                            />
                                         </PopoverContent>
                                     </Popover>
                                 </div>
@@ -208,14 +193,14 @@ export default function ReportsPage() {
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
                                 <Button
-                                    className="w-full justify-start bg-[#0F4C81] hover:bg-[#0F4C81]/90"
+                                    className="w-full justify-start bg-[#0F4C81] hover:bg-[#0F4C81]/90 text-white"
                                     onClick={handleGenerateExternalPDF}
                                     disabled={!selectedEntity || !startDate || !endDate || isGenerating}
                                 >
                                     <Download className="mr-2 size-4" />
                                     {isGenerating && !internalAnalytics ? "Processando..." : "Gerar PDF (Visão Externa)"}
                                 </Button>
-                                <p className="text-sm text-gray-600 px-1">
+                                <p className="text-sm text-muted-foreground px-1">
                                     Relatório formatado para compartilhar com alunos e responsáveis.
                                 </p>
                             </div>
@@ -230,7 +215,7 @@ export default function ReportsPage() {
                                     <FileText className="mr-2 size-4" />
                                     Gerar Relatório Interno (Professor)
                                 </Button>
-                                <p className="text-sm text-gray-600 px-1">
+                                <p className="text-sm text-muted-foreground px-1">
                                     Visão gerencial em tela incluindo notas privadas e análise de evasão.
                                 </p>
                             </div>
@@ -246,13 +231,13 @@ export default function ReportsPage() {
                                 <div className="space-y-4 text-sm">
                                     <div className="grid grid-cols-2 gap-4 pb-4 border-b">
                                         <div>
-                                            <p className="text-gray-600">Período</p>
+                                            <p className="text-muted-foreground">Período</p>
                                             <p className="font-medium">
                                                 {format(startDate, "dd/MM/yyyy")} a {format(endDate, "dd/MM/yyyy")}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-gray-600">Aluno</p>
+                                            <p className="text-muted-foreground">Entidade Selecionada</p>
                                             <p className="font-medium">
                                                 {students.find((s) => s.id === selectedEntity)?.name || "Desconhecido"}
                                             </p>
@@ -265,7 +250,6 @@ export default function ReportsPage() {
                 </div>
             </div>
 
-            {/* Painel de Analytics Interno (Apenas para o Professor) */}
             {internalAnalytics && (
                 <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <h2 className="text-2xl font-bold border-b pb-2 flex items-center gap-2">
@@ -286,7 +270,7 @@ export default function ReportsPage() {
                                 <p className="text-3xl font-bold text-green-600">{internalAnalytics.attendedLessons}</p>
                             </CardContent>
                         </Card>
-                        <Card className={`shadow-sm ${internalAnalytics.missedLessons > 2 ? 'border-red-300 bg-red-50/30' : ''}`}>
+                        <Card className={`shadow-sm ${internalAnalytics.missedLessons > 2 ? 'border-red-300 bg-red-50/30 dark:bg-red-900/10' : ''}`}>
                             <CardContent className="p-4 text-center">
                                 <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Faltas</p>
                                 <p className={`text-3xl font-bold ${internalAnalytics.missedLessons > 0 ? 'text-red-600' : 'text-green-600'}`}>
@@ -305,11 +289,11 @@ export default function ReportsPage() {
                     </div>
 
                     {internalAnalytics.attendanceRate < 75 && internalAnalytics.totalLessons > 0 && (
-                        <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex items-start gap-3">
-                            <TrendingDown className="size-5 text-orange-600 shrink-0 mt-0.5" />
+                        <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900 p-4 rounded-xl flex items-start gap-3">
+                            <TrendingDown className="size-5 text-orange-600 dark:text-orange-500 shrink-0 mt-0.5" />
                             <div>
-                                <h4 className="font-semibold text-orange-900">Risco Alto de Churn (Evasão)</h4>
-                                <p className="text-sm text-orange-800">A taxa de presença está abaixo de 75%. É recomendável entrar em contato com os pais ou responsáveis para alinhar o engajamento.</p>
+                                <h4 className="font-semibold text-orange-900 dark:text-orange-400">Risco Alto de Churn (Evasão)</h4>
+                                <p className="text-sm text-orange-800 dark:text-orange-300">A taxa de presença está abaixo de 75%. É recomendável entrar em contato com os pais ou responsáveis para alinhar o engajamento.</p>
                             </div>
                         </div>
                     )}
