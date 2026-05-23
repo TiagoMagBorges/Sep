@@ -4,7 +4,7 @@ export interface User {
 
 export interface SignInData {
     email: string;
-    senha: string;
+    password: string;
 }
 
 export interface AuthContextData {

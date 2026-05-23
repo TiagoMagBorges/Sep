@@ -24,9 +24,9 @@ export default function Signup() {
             setError("");
 
             await api.post("/auth/register", {
-                nome: name,
+                name,
                 email,
-                senha: password,
+                password,
             });
 
             router.push("/login");

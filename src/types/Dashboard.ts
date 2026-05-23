@@ -1,5 +1,5 @@
 export interface DashboardSummary {
-    totalAlunosAtivos: number;
-    aulasNaSemana: number;
-    pagamentosPendentes: number;
+    totalActiveStudents: number;
+    lessonsInWeek: number;
+    pendingPayments: number;
 }

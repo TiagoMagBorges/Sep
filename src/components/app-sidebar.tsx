@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Users, Calendar, DollarSign, FileText, Settings, LogOut, User2 } from "lucide-react";
+import { Home, Users, User, Calendar, DollarSign, FileText, Settings, LogOut, User2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +18,8 @@ import {
 
 const items = [
     { title: "Dashboard", url: "/dashboard", icon: Home },
-    { title: "Alunos", url: "/students", icon: Users },
+    { title: "Turmas", url: "/class-groups", icon: Users },
+    { title: "Alunos", url: "/students", icon: User },
     { title: "Agenda", url: "/schedule", icon: Calendar },
     { title: "Finanças", url: "/finances", icon: DollarSign },
     { title: "Relatórios", url: "/reports", icon: FileText },
@@ -46,14 +47,11 @@ export function AppSidebar() {
                     <SidebarGroupContent>
                         <SidebarMenu className="gap-2">
                             {items.map((item) => {
-                                const isActive = pathname === item.url;
+                                const isActive = pathname === item.url || pathname.startsWith(`${item.url}/`);
+
                                 return (
                                     <SidebarMenuItem key={item.title}>
-                                        <SidebarMenuButton
-                                            asChild
-                                            isActive={isActive}
-                                            className={isActive ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}
-                                        >
+                                        <SidebarMenuButton asChild isActive={isActive}>
                                             <Link href={item.url} className="flex items-center gap-3">
                                                 <item.icon className="size-5" />
                                                 <span className="font-medium">{item.title}</span>
@@ -69,16 +67,16 @@ export function AppSidebar() {
             <SidebarFooter className="p-4 border-t border-border">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton className="w-full justify-between h-auto p-2">
+                        <SidebarMenuButton className="w-full justify-between h-auto p-2" onClick={signOut}>
                             <div className="flex items-center gap-3">
                                 <div className="size-8 rounded-full bg-accent flex items-center justify-center">
                                     <User2 className="size-4 text-muted-foreground" />
                                 </div>
                                 <div className="flex flex-col items-start text-sm">
-                                    <span className="font-medium">Prof. Tiago</span>
+                                    <span className="font-medium text-foreground">Prof. Tiago</span>
                                 </div>
                             </div>
-                            <LogOut className="size-4 text-muted-foreground hover:text-destructive cursor-pointer" onClick={signOut} />
+                            <LogOut className="size-4 text-muted-foreground" />
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>

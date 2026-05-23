@@ -25,8 +25,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    async function signIn({ email, senha }: SignInData) {
-        const response = await api.post('/auth/login', { email, senha });
+    async function signIn({ email, password }: SignInData) {
+        const response = await api.post('/auth/login', { email, password });
         const { token } = response.data;
 
         Cookies.set('sep.token', token, { expires: 1 });

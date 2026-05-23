@@ -23,7 +23,7 @@ export default function Login() {
         try {
             setIsLoading(true);
             setError("");
-            await signIn({ email, senha: password });
+            await signIn({ email, password });
         } catch (err) {
             setError("Falha na autenticação. Verifique suas credenciais.");
         } finally {

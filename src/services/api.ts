@@ -7,7 +7,9 @@ export const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token = Cookies.get('sep.token');
+        const token = Cookies.get('sep.token') ||
+            Cookies.get('token') ||
+            (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -16,6 +18,29 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+api.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+            const requestUrl = error.config?.url || '';
+
+            if (!requestUrl.includes('/login') && !requestUrl.includes('/auth')) {
+                Cookies.remove('sep.token');
+                Cookies.remove('token');
+
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('sep.token');
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                }
+            }
+        }
         return Promise.reject(error);
     }
 );
