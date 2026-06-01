@@ -22,7 +22,7 @@ export interface ClassGroupAnalytics {
 }
 
 export interface FinanceAnalytics {
-    totalReceived: number;
+    totalPaid: number;
     totalPending: number;
     totalOverdue: number;
 }

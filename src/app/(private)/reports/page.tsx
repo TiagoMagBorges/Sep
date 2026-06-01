@@ -1,5 +1,9 @@
 "use client";
 
+import { FinanceAnalyticsReport } from "@/components/reports/finance-analytics";
+import { ClassAnalyticsReport } from "@/components/reports/class-analytics";
+import { FinanceAnalytics, ClassGroupAnalytics } from "@/types/Report";
+
 import { useState } from "react";
 import {
     Download,
@@ -86,6 +90,19 @@ export default function ReportsPage() {
         );
     };
 
+    // const handleGenerateInternalReport = async () => {
+    //     if (!startDate || !endDate) return;
+
+    //     const data = await fetchInternalAnalytics<AnalyticsResponse>(
+    //         reportType,
+    //         startDate,
+    //         endDate,
+    //         reportType === "finance" ? undefined : selectedEntity
+    //     );
+
+    //     setAnalytics(data);
+    // };
+
     const handleGenerateInternalReport = async () => {
         if (!startDate || !endDate) return;
 
@@ -96,7 +113,10 @@ export default function ReportsPage() {
             reportType === "finance" ? undefined : selectedEntity
         );
 
-        setAnalytics(data);
+        if (data) {
+            setAnalytics(data);
+        }
+        // se data for null, o erro já foi setado pelo hook e será exibido no banner
     };
 
     const shouldShowEntitySelect = reportType !== "finance";
@@ -322,7 +342,7 @@ export default function ReportsPage() {
                 </Card>
             </div>
 
-            {analytics && (
+            {/* {analytics && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Resultado</CardTitle>
@@ -334,6 +354,34 @@ export default function ReportsPage() {
                         </pre>
                     </CardContent>
                 </Card>
+            )} */}
+            {analytics && (
+                <div className="space-y-6 mt-6">
+                    <div>
+                        <h2 className="text-xl font-semibold mb-4">Resultado da Análise</h2>
+                    </div>
+
+                    {reportType === "finance" && (
+                        <FinanceAnalyticsReport data={analytics as FinanceAnalytics} />
+                    )}
+
+                    {reportType === "class" && (
+                        <ClassAnalyticsReport data={analytics as ClassGroupAnalytics} />
+                    )}
+
+                    {reportType === "student" && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Resultado (Aluno)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <pre className="text-sm whitespace-pre-wrap">
+                                    {JSON.stringify(analytics, null, 2)}
+                                </pre>
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
             )}
         </div>
     );
