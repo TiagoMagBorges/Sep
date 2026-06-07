@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
@@ -9,21 +9,46 @@ import { AuthContextData, SignInData, User } from '@/types/Auth';
 
 const AuthContext = createContext({} as AuthContextData);
 
+function getStoredUser(): User | null {
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    const token = Cookies.get('sep.token');
+
+    if (!token) {
+        return null;
+    }
+
+    try {
+        const decoded = jwtDecode<{ sub: string }>(token);
+        api.defaults.headers.common.Authorization = `Bearer ${token}`;
+        return { id: decoded.sub };
+    } catch {
+        Cookies.remove('sep.token');
+        return null;
+    }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<User | null>(() => getStoredUser());
     const router = useRouter();
 
     const isAuthenticated = !!user;
 
-    useEffect(() => {
-        const token = Cookies.get('sep.token');
+    function clearClientSession() {
+        Object.keys(Cookies.get()).forEach((cookieName) => {
+            Cookies.remove(cookieName);
+            Cookies.remove(cookieName, { path: '/' });
+        });
 
-        if (token) {
-            const decoded = jwtDecode<{ sub: string }>(token);
-            setUser({ id: decoded.sub });
-            api.defaults.headers.common.Authorization = `Bearer ${token}`;
+        if (typeof window !== 'undefined') {
+            window.localStorage.clear();
+            window.sessionStorage.clear();
         }
-    }, []);
+
+        delete api.defaults.headers.common.Authorization;
+    }
 
     async function signIn({ email, senha }: SignInData) {
         const response = await api.post('/auth/login', { email, senha });
@@ -39,10 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     function signOut() {
-        Cookies.remove('sep.token');
+        clearClientSession();
         setUser(null);
-        delete api.defaults.headers.common.Authorization;
-        router.push('/login');
+        router.replace('/login');
     }
 
     return (

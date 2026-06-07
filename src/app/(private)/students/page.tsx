@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, SyntheticEvent } from "react";
-import { Search, Plus, AlertCircle, ChevronRight, Edit2, Trash2 } from "lucide-react";
+import { Search, Plus, AlertCircle, ChevronRight, Edit2, Trash2, Archive } from "lucide-react";
 import { api } from "@/services/api";
 import { Student, StudentRequest, BillingType, PageableResponse, StudentMetricas } from "@/types/Student";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,8 @@ export default function StudentsPage() {
         saldoCreditos: 0,
     });
     const [isSaving, setIsSaving] = useState(false);
+    const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -109,13 +111,18 @@ export default function StudentsPage() {
         }
     }
 
-    async function handleDelete(id: string) {
-        if (!confirm("Tem certeza que deseja remover este aluno?")) return;
+    async function handleDelete() {
+        if (!studentToDelete) return;
+
         try {
-            await api.delete(`/alunos/${id}`);
+            setIsDeleting(true);
+            await api.delete(`/alunos/${studentToDelete.id}`);
+            setStudentToDelete(null);
             fetchData();
         } catch (error) {
             console.error(error);
+        } finally {
+            setIsDeleting(false);
         }
     }
 
@@ -222,7 +229,7 @@ export default function StudentsPage() {
                                         <Button variant="ghost" size="icon" className="size-8" onClick={() => openSheet(student)}>
                                             <Edit2 className="size-4 text-muted-foreground hover:text-foreground" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="size-8" onClick={() => handleDelete(student.id)}>
+                                        <Button variant="ghost" size="icon" className="size-8" onClick={() => setStudentToDelete(student)}>
                                             <Trash2 className="size-4 text-destructive hover:text-destructive/80" />
                                         </Button>
                                     </div>
@@ -311,6 +318,43 @@ export default function StudentsPage() {
                     </form>
                 </SheetContent>
             </Sheet>
+
+            {studentToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="delete-student-title"
+                        className="w-full max-w-md rounded-lg border bg-background p-6 shadow-lg"
+                    >
+                        <div className="flex items-start gap-3">
+                            <div className="rounded-full bg-orange-100 p-2 text-orange-700">
+                                <Archive className="size-5" />
+                            </div>
+                            <div className="space-y-2">
+                                <h2 id="delete-student-title" className="text-lg font-semibold">
+                                    Arquivar aluno
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    Ao remover {studentToDelete.nome}, os dados do aluno serão movidos para o arquivo morto e ficarão retidos por 2 anos antes da exclusão física.
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Durante esse período, o registro deixa de aparecer na gestão ativa, mas permanece preservado conforme a política de retenção.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <Button variant="outline" onClick={() => setStudentToDelete(null)} disabled={isDeleting}>
+                                Cancelar
+                            </Button>
+                            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                                {isDeleting ? "Arquivando..." : "Arquivar aluno"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

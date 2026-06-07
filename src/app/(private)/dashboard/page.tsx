@@ -31,11 +31,11 @@ export default function Dashboard() {
         fetchSummary();
     }, []);
 
-    const todayClasses: any[] = [];
-    const upcomingClasses: any[] = [];
-    const students: any[] = [];
-    const lowCreditStudents: any[] = [];
-    const pendingPayments: any[] = [];
+    const todayClasses: unknown[] = [];
+    const upcomingClasses: unknown[] = [];
+    const students: unknown[] = [];
+    const lowCreditStudents: unknown[] = [];
+    const pendingPayments: unknown[] = [];
 
     const formatCurrency = (value: number) =>
         new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
