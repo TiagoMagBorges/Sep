@@ -2,6 +2,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { api } from "@/services/api";
 import { AnalyticsResponse, ReportType } from "@/types/Report";
+import Cookies from "js-cookie";
 
 export function useReports() {
     const [isGenerating, setIsGenerating] = useState(false);
@@ -65,19 +66,44 @@ export function useReports() {
         start: Date,
         end: Date,
         entityId?: string
-    ): Promise<T> => {
+    ): Promise<T | null> => {
         setIsGenerating(true);
         setError(null);
 
         try {
             const endpoint = resolveEndpoint("/analytics", type, entityId);
-            const response = await api.get<T>(endpoint, {
-                params: formatParams(start, end),
-            });
-            return response.data;
-        } catch (err) {
-            setError("Falha ao buscar dados gerenciais.");
-            throw err;
+            const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+            const url = `${baseURL}${endpoint}?start=${format(start, "yyyy-MM-dd")}&end=${format(end, "yyyy-MM-dd")}`;
+
+            // Pega o token do mesmo local que o interceptor usa
+            const token =
+                Cookies.get('sep.token') ||
+                Cookies.get('token') ||
+                (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const res = await fetch(url, { headers });
+
+            if (!res.ok) {
+                let errorMessage = `Erro ${res.status}`;
+                try {
+                    const body = await res.json();
+                    errorMessage = body.message || body.error || errorMessage;
+                } catch {}
+                throw new Error(errorMessage);
+            }
+
+            return await res.json();
+        } catch (err: any) {
+            const message = err.message || "Falha ao buscar dados gerenciais.";
+            setError(message);
+            return null; // Não lança o erro, mantém o controle na UI
         } finally {
             setIsGenerating(false);
         }
