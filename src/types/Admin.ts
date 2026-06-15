@@ -5,7 +5,6 @@ export interface User {
     createdAt: string;
 }
 
-// Reutilizando o padrão Pageable do Spring/Java (comum em chamadas paginadas)
 export interface PageableResponse<T> {
     content: T[];
     totalPages: number;
