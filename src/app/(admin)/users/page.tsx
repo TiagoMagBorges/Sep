@@ -7,7 +7,6 @@ import { ptBR } from "date-fns/locale";
 import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { User } from "@/types/Admin";
 
-// Componentes hipotéticos do Shadcn UI baseados no package.json
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -54,7 +53,6 @@ export default function AdminUsersPage() {
             setIsModalOpen(false);
             setUserToDelete(null);
         } catch (error) {
-            // O erro já é tratado visualmente (Toast) dentro do hook useAdmin
             console.error("Falha na exclusão");
         }
     };
@@ -113,7 +111,6 @@ export default function AdminUsersPage() {
                 </Table>
             </div>
 
-            {/* Subtask 3: Controles de Paginação */}
             <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
                     Página {page + 1} de {totalPages || 1}
@@ -140,7 +137,6 @@ export default function AdminUsersPage() {
                 </div>
             </div>
 
-            {/* Subtask 4: Modal de Confirmação de Exclusão */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent>
                     <DialogHeader>
