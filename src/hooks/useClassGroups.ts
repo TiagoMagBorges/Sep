@@ -31,7 +31,7 @@ export function useClassGroups() {
     }, []);
 
     const filteredGroups = classGroups.filter(group =>
-        group.name.toLowerCase().includes(search.toLowerCase())
+      group.name.toLowerCase().includes(search.toLowerCase())
     );
 
     const saveClassGroup = async (id: string | null, payload: ClassGroupRequest) => {
