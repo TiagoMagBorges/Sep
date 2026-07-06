@@ -19,7 +19,7 @@ export function useStudents() {
             setStudents(studentsRes.data.content);
             setMetrics(metricsRes.data);
         } catch (error) {
-            console.error("Erro ao buscar alunos:", error);
+            console.error(error);
         } finally {
             setIsLoading(false);
         }
@@ -30,8 +30,8 @@ export function useStudents() {
     }, []);
 
     const filteredStudents = students.filter(student =>
-        student.name.toLowerCase().includes(search.toLowerCase()) ||
-        student.subject.toLowerCase().includes(search.toLowerCase())
+      student.name.toLowerCase().includes(search.toLowerCase()) ||
+      student.subject.toLowerCase().includes(search.toLowerCase())
     );
 
     const saveStudent = async (id: string | null, payload: StudentRequest) => {
@@ -49,12 +49,11 @@ export function useStudents() {
     };
 
     const deleteStudent = async (id: string) => {
-        if (!confirm("Tem certeza que deseja remover este aluno?")) return;
         try {
             await api.delete(`/students/${id}`);
             await fetchData();
         } catch (error) {
-            console.error("Erro ao deletar aluno:", error);
+            throw error;
         }
     };
 

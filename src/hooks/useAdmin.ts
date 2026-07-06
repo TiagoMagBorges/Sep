@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/services/api";
-import { User, PageableResponse } from "@/types/Admin";
+import { AdminUser, PageableResponse } from "@/types/Admin";
 import { toast } from "sonner";
 
 export function useAdmin() {
-    const [users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<AdminUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
-    
+
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const pageSize = 10;
@@ -15,11 +15,14 @@ export function useAdmin() {
     const fetchUsers = useCallback(async () => {
         try {
             setIsLoading(true);
-            const response = await api.get<PageableResponse<User>>(`/admin/users?page=${page}&size=${pageSize}`);
-            setUsers(response.data.content);
-            setTotalPages(response.data.totalPages);
+            console.log("OI")
+            const response = await api.get<PageableResponse<AdminUser>>(`/admin/users?page=${page}&size=${pageSize}`);
+            console.log(response.data?.content || []);
+            setUsers(response.data?.content || []);
+            setTotalPages(response.data?.totalPages || 0);
         } catch (error) {
             console.error("Erro ao buscar usuários:", error);
+            setUsers([]);
             toast.error("Não foi possível carregar a lista de usuários.");
         } finally {
             setIsLoading(false);
@@ -49,7 +52,7 @@ export function useAdmin() {
     const prevPage = () => setPage((prev) => (prev > 0 ? prev - 1 : 0));
 
     return {
-        users,
+        users: users || [],
         isLoading,
         isDeleting,
         page,

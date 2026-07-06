@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Plus, AlertCircle, LayoutGrid, List } from "lucide-react";
 import { api } from "@/services/api";
@@ -16,7 +16,7 @@ import { WeekGrid } from "@/components/schedule/week-grid";
 
 type ViewMode = 'month' | 'week';
 
-export default function SchedulePage() {
+function ScheduleContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -33,7 +33,7 @@ export default function SchedulePage() {
 
     useEffect(() => {
         api.get<PageableResponse<Student>>("/students?size=100")
-            .then(res => setStudentsList(res.data.content));
+          .then(res => setStudentsList(res.data.content));
     }, []);
 
     useEffect(() => {
@@ -82,90 +82,98 @@ export default function SchedulePage() {
     const currentWeekDays = getWeekDays(currentDate);
 
     return (
-        <div className="space-y-6 max-w-6xl mx-auto">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Calendário</h1>
-                    <p className="text-muted-foreground mt-1">Sua grade temporal de aulas.</p>
-                </div>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="flex p-1 bg-muted rounded-lg">
-                        <Button variant={viewMode === 'week' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('week')} className="gap-2">
-                            <List className="size-4" /> Semana
-                        </Button>
-                        <Button variant={viewMode === 'month' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('month')} className="gap-2">
-                            <LayoutGrid className="size-4" /> Mês
-                        </Button>
-                    </div>
-                    <Button onClick={() => { setClickDate(undefined); setClickTime(undefined); setIsNewClassOpen(true); }} className="gap-2">
-                        <Plus className="size-4" /> Nova Aula
-                    </Button>
-                </div>
+      <div className="space-y-6 max-w-6xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                  <h1 className="text-3xl font-bold tracking-tight">Calendário</h1>
+                  <p className="text-muted-foreground mt-1">Sua grade temporal de aulas.</p>
+              </div>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="flex p-1 bg-muted rounded-lg">
+                      <Button variant={viewMode === 'week' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('week')} className="gap-2">
+                          <List className="size-4" /> Semana
+                      </Button>
+                      <Button variant={viewMode === 'month' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('month')} className="gap-2">
+                          <LayoutGrid className="size-4" /> Mês
+                      </Button>
+                  </div>
+                  <Button onClick={() => { setClickDate(undefined); setClickTime(undefined); setIsNewClassOpen(true); }} className="gap-2">
+                      <Plus className="size-4" /> Nova Aula
+                  </Button>
+              </div>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl">
+                <AlertCircle className="size-5 text-red-500 shrink-0" />
+                <p className="text-sm font-medium">{error}</p>
             </div>
+          )}
 
-            {error && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl">
-                    <AlertCircle className="size-5 text-red-500 shrink-0" />
-                    <p className="text-sm font-medium">{error}</p>
-                </div>
-            )}
-
-            <Card className="shadow-sm border-none bg-transparent sm:bg-card sm:border">
-                <CardHeader className="px-0 sm:px-6">
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="capitalize text-lg">
-                            {viewMode === 'week' ? `Semana de ${currentWeekDays[0].toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}` : currentDate.toLocaleString("pt-BR", { month: "long", year: "numeric" })}
-                        </CardTitle>
-                        <div className="flex gap-2">
-                            <Button variant="outline" size="icon" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - (viewMode === 'week' ? 7 : 30)))}>
-                                <ChevronLeft className="size-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + (viewMode === 'week' ? 7 : 30)))}>
-                                <ChevronRight className="size-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="px-0 sm:px-6 overflow-x-auto pb-6">
-                    {isLoading ? (
-                        <div className="flex items-center justify-center py-20 text-muted-foreground">Carregando calendário...</div>
+          <Card className="shadow-sm border-none bg-transparent sm:bg-card sm:border">
+              <CardHeader className="px-0 sm:px-6">
+                  <div className="flex items-center justify-between">
+                      <CardTitle className="capitalize text-lg">
+                          {viewMode === 'week' ? `Semana de ${currentWeekDays[0].toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}` : currentDate.toLocaleString("pt-BR", { month: "long", year: "numeric" })}
+                      </CardTitle>
+                      <div className="flex gap-2">
+                          <Button variant="outline" size="icon" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - (viewMode === 'week' ? 7 : 30)))}>
+                              <ChevronLeft className="size-4" />
+                          </Button>
+                          <Button variant="outline" size="icon" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + (viewMode === 'week' ? 7 : 30)))}>
+                              <ChevronRight className="size-4" />
+                          </Button>
+                      </div>
+                  </div>
+              </CardHeader>
+              <CardContent className="px-0 sm:px-6 overflow-x-auto pb-6">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-20 text-muted-foreground">Carregando calendário...</div>
+                  ) : (
+                    viewMode === 'week' ? (
+                      <WeekGrid
+                        currentDate={currentDate}
+                        lessons={lessons}
+                        onGridClick={handleGridClick}
+                        onLessonSelect={setSelectedFinishClass}
+                      />
                     ) : (
-                        viewMode === 'week' ? (
-                            <WeekGrid
-                                currentDate={currentDate}
-                                lessons={lessons}
-                                onGridClick={handleGridClick}
-                                onLessonSelect={setSelectedFinishClass}
-                            />
-                        ) : (
-                            <MonthGrid
-                                currentDate={currentDate}
-                                lessons={lessons}
-                                onGridClick={handleGridClick}
-                                onLessonSelect={setSelectedFinishClass}
-                            />
-                        )
-                    )}
-                </CardContent>
-            </Card>
+                      <MonthGrid
+                        currentDate={currentDate}
+                        lessons={lessons}
+                        onGridClick={handleGridClick}
+                        onLessonSelect={setSelectedFinishClass}
+                      />
+                    )
+                  )}
+              </CardContent>
+          </Card>
 
-            <NewClassModal
-                open={isNewClassOpen}
-                onClose={() => setIsNewClassOpen(false)}
-                onSave={async (payload) => saveLesson(null, payload)}
-                studentsList={studentsList}
-                initialDate={clickDate}
-                initialTime={clickTime}
+          <NewClassModal
+            open={isNewClassOpen}
+            onClose={() => setIsNewClassOpen(false)}
+            onSave={async (payload) => saveLesson(null, payload)}
+            studentsList={studentsList}
+            initialDate={clickDate}
+            initialTime={clickTime}
+          />
+
+          {selectedFinishClass && (
+            <QuickClassFinishModal
+              classData={selectedFinishClass}
+              open={!!selectedFinishClass}
+              onClose={() => setSelectedFinishClass(null)}
+              onStatusUpdate={handleStatusUpdate}
             />
+          )}
+      </div>
+    );
+}
 
-            {selectedFinishClass && (
-                <QuickClassFinishModal
-                    classData={selectedFinishClass}
-                    open={!!selectedFinishClass}
-                    onClose={() => setSelectedFinishClass(null)}
-                    onStatusUpdate={handleStatusUpdate}
-                />
-            )}
-        </div>
+export default function SchedulePage() {
+    return (
+      <Suspense fallback={<div className="flex items-center justify-center py-20 text-muted-foreground">Carregando ambiente...</div>}>
+          <ScheduleContent />
+      </Suspense>
     );
 }

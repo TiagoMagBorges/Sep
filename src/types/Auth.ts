@@ -1,5 +1,8 @@
+export type Role = 'ADMIN' | 'PROFESSOR';
+
 export interface User {
     id: string;
+    role: Role;
 }
 
 export interface SignInData {

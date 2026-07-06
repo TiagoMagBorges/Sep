@@ -40,8 +40,8 @@ export function NewClassModal({ open, onClose, onSave, studentsList, initialDate
     useEffect(() => {
         if (open) {
             api.get<ClassGroupPageableResponse>("/class-groups?size=100")
-                .then(res => setClassGroupsList(res.data.content))
-                .catch(console.error);
+              .then(res => setClassGroupsList(res.data.content))
+              .catch(console.error);
 
             const timeoutId = setTimeout(() => {
                 setDate(initialDate || new Date());
@@ -98,118 +98,118 @@ export function NewClassModal({ open, onClose, onSave, studentsList, initialDate
     const isFormValid = (mode === "student" ? !!studentId : !!classGroupId) && !!date && !!time;
 
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Nova Aula</DialogTitle>
-                    <DialogDescription>Agende uma nova sessão no calendário.</DialogDescription>
-                </DialogHeader>
+      <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                  <DialogTitle>Nova Aula</DialogTitle>
+                  <DialogDescription>Agende uma nova sessão no calendário.</DialogDescription>
+              </DialogHeader>
 
-                <div className="space-y-4 py-4">
-                    <div className="flex p-1 bg-muted rounded-lg w-full">
-                        <Button
-                            type="button"
-                            variant={mode === "student" ? "secondary" : "ghost"}
-                            className="w-1/2 gap-2"
-                            onClick={() => { setMode("student"); setStudentId(""); setClassGroupId(""); }}
-                        >
-                            <User className="size-4" /> Aluno Individual
-                        </Button>
-                        <Button
-                            type="button"
-                            variant={mode === "class" ? "secondary" : "ghost"}
-                            className="w-1/2 gap-2"
-                            onClick={() => { setMode("class"); setStudentId(""); setClassGroupId(""); }}
-                        >
-                            <Users className="size-4" /> Turma
-                        </Button>
-                    </div>
+              <div className="space-y-4 py-4">
+                  <div className="flex p-1 bg-muted rounded-lg w-full">
+                      <Button
+                        type="button"
+                        variant={mode === "student" ? "secondary" : "ghost"}
+                        className="w-1/2 gap-2"
+                        onClick={() => { setMode("student"); setStudentId(""); setClassGroupId(""); }}
+                      >
+                          <User className="size-4" /> Aluno Individual
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={mode === "class" ? "secondary" : "ghost"}
+                        className="w-1/2 gap-2"
+                        onClick={() => { setMode("class"); setStudentId(""); setClassGroupId(""); }}
+                      >
+                          <Users className="size-4" /> Turma
+                      </Button>
+                  </div>
 
-                    {mode === "student" && (
-                        <div className="space-y-2">
-                            <Label htmlFor="student">Selecionar Aluno</Label>
-                            <Select value={studentId} onValueChange={setStudentId}>
-                                <SelectTrigger id="student">
-                                    <SelectValue placeholder="Busque um aluno..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {studentsList.filter(s => s.active).map((student) => (
-                                        <SelectItem key={student.id} value={student.id}>
-                                            {student.name} - {student.subject}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {mode === "class" && (
-                        <div className="space-y-2">
-                            <Label htmlFor="class">Selecionar Turma</Label>
-                            <Select value={classGroupId} onValueChange={setClassGroupId}>
-                                <SelectTrigger id="class">
-                                    <SelectValue placeholder="Busque uma turma..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {classGroupsList.map((group) => (
-                                        <SelectItem key={group.id} value={group.id}>
-                                            {group.name} ({group.students?.length || 0} alunos)
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label>Data</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                        <CalendarIcon className="mr-2 size-4" />
-                                        {date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : <span className="text-gray-500">Selecionar data</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="time">Horário</Label>
-                            <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-                        </div>
-                    </div>
-
+                  {mode === "student" && (
                     <div className="space-y-2">
-                        <Label htmlFor="duration">Duração</Label>
-                        <Select value={duration} onValueChange={setDuration}>
-                            <SelectTrigger id="duration">
-                                <SelectValue />
+                        <Label htmlFor="student">Selecionar Aluno</Label>
+                        <Select value={studentId} onValueChange={setStudentId}>
+                            <SelectTrigger id="student">
+                                <SelectValue placeholder="Busque um aluno..." />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="0.5">30 minutos</SelectItem>
-                                <SelectItem value="1">1 hora</SelectItem>
-                                <SelectItem value="1.5">1 hora e 30 minutos</SelectItem>
-                                <SelectItem value="2">2 horas</SelectItem>
+                                {studentsList.filter(s => s.active).map((student) => (
+                                  <SelectItem key={student.id} value={student.id}>
+                                      {student.name} - {student.subject}
+                                  </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
+                  )}
 
+                  {mode === "class" && (
                     <div className="space-y-2">
-                        <Label htmlFor="notes">Observações Iniciais</Label>
-                        <Textarea id="notes" placeholder="Tópicos que serão abordados..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+                        <Label htmlFor="class">Selecionar Turma</Label>
+                        <Select value={classGroupId} onValueChange={setClassGroupId}>
+                            <SelectTrigger id="class">
+                                <SelectValue placeholder="Busque uma turma..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {classGroupsList.map((group) => (
+                                  <SelectItem key={group.id} value={group.id}>
+                                      {group.name} ({group.students?.length || 0} alunos)
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-                </div>
+                  )}
 
-                <DialogFooter>
-                    <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
-                    <Button onClick={handleSave} disabled={!isFormValid || isSaving} className="bg-[#0F4C81] hover:bg-[#0F4C81]/90">
-                        {isSaving ? "Agendando..." : "Agendar Aula"}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                  <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                          <Label>Data</Label>
+                          <Popover>
+                              <PopoverTrigger asChild>
+                                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                      <CalendarIcon className="mr-2 size-4" />
+                                      {date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : <span className="text-gray-500">Selecionar data</span>}
+                                  </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+                              </PopoverContent>
+                          </Popover>
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="time">Horário</Label>
+                          <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+                      </div>
+                  </div>
+
+                  <div className="space-y-2">
+                      <Label htmlFor="duration">Duração</Label>
+                      <Select value={duration} onValueChange={setDuration}>
+                          <SelectTrigger id="duration">
+                              <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                              <SelectItem value="0.5">30 minutos</SelectItem>
+                              <SelectItem value="1">1 hora</SelectItem>
+                              <SelectItem value="1.5">1 hora e 30 minutos</SelectItem>
+                              <SelectItem value="2">2 horas</SelectItem>
+                          </SelectContent>
+                      </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                      <Label htmlFor="notes">Observações Iniciais</Label>
+                      <Textarea id="notes" placeholder="Tópicos que serão abordados..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+                  </div>
+              </div>
+
+              <DialogFooter>
+                  <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
+                  <Button onClick={handleSave} disabled={!isFormValid || isSaving} className="bg-[#0F4C81] hover:bg-[#0F4C81]/90">
+                      {isSaving ? "Agendando..." : "Agendar Aula"}
+                  </Button>
+              </DialogFooter>
+          </DialogContent>
+      </Dialog>
     );
 }

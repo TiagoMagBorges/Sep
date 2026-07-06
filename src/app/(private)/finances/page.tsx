@@ -28,8 +28,8 @@ export default function FinancesPage() {
     const { lessons } = useSchedule(today);
 
     const completedClasses = useMemo(() =>
-            lessons.filter((c) => c.status === LessonStatus.COMPLETED),
-        [lessons]);
+        lessons.filter((c) => c.status === LessonStatus.COMPLETED),
+      [lessons]);
 
     const metrics = useMemo(() => {
         const paid = transactions.filter(t => t.status === "PAID");
@@ -92,12 +92,12 @@ export default function FinancesPage() {
     }, [transactions]);
 
     const pendingTransactions = useMemo(() =>
-            transactions.filter(t => t.status === "PENDING" || t.status === "OVERDUE"),
-        [transactions]);
+        transactions.filter(t => t.status === "PENDING" || t.status === "OVERDUE"),
+      [transactions]);
 
     const recentTransactions = useMemo(() =>
-            [...transactions].sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).slice(0, 8),
-        [transactions]);
+        [...transactions].sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).slice(0, 8),
+      [transactions]);
 
     const handleApplyFilter = () => setFilterApplied(true);
     const handleClearFilter = () => {
@@ -107,58 +107,58 @@ export default function FinancesPage() {
     };
 
     return (
-        <div className="space-y-8 max-w-6xl mx-auto">
-            <div className="rounded-2xl bg-primary px-6 py-8 text-white shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold">Painel Financeiro</h1>
-                        <p className="mt-1 text-white/75">
-                            Acompanhe seus ganhos, monitore tendências e gerencie pagamentos pendentes.
-                        </p>
-                    </div>
-                    <Button
-                        onClick={() => setIsAddPaymentModalOpen(true)}
-                        className="bg-white text-primary hover:bg-white/90 gap-2"
-                    >
-                        <Plus className="size-4" /> Registrar Pagamento
-                    </Button>
-                </div>
-            </div>
+      <div className="space-y-8 max-w-6xl mx-auto">
+          <div className="rounded-2xl bg-primary px-6 py-8 text-white shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                      <h1 className="text-3xl font-bold">Painel Financeiro</h1>
+                      <p className="mt-1 text-white/75">
+                          Acompanhe seus ganhos, monitore tendências e gerencie pagamentos pendentes.
+                      </p>
+                  </div>
+                  <Button
+                    onClick={() => setIsAddPaymentModalOpen(true)}
+                    className="bg-white text-primary hover:bg-white/90 gap-2"
+                  >
+                      <Plus className="size-4" /> Registrar Pagamento
+                  </Button>
+              </div>
+          </div>
 
-            <FinanceFilter
-                startDate={startDate}
-                endDate={endDate}
-                setStartDate={setStartDate}
-                setEndDate={setEndDate}
-                onApply={handleApplyFilter}
-                onClear={handleClearFilter}
-                isApplied={filterApplied}
-            />
+          <FinanceFilter
+            startDate={startDate}
+            endDate={endDate}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
+            onApply={handleApplyFilter}
+            onClear={handleClearFilter}
+            isApplied={filterApplied}
+          />
 
-            <FinanceMetrics metrics={metrics} />
+          <FinanceMetrics metrics={metrics} />
 
-            <FinanceChart data={monthlyEarningsData} />
+          <FinanceChart data={monthlyEarningsData} />
 
-            <FinanceStatusBreakdown metrics={metrics} />
+          <FinanceStatusBreakdown metrics={metrics} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <RevenueByClient data={revenueByClient} />
-                <TransactionLists
-                    type="pending"
-                    transactions={pendingTransactions}
-                />
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <RevenueByClient data={revenueByClient} />
+              <TransactionLists
+                type="pending"
+                transactions={pendingTransactions}
+              />
+          </div>
 
-            <TransactionLists
-                type="recent"
-                transactions={recentTransactions}
-            />
+          <TransactionLists
+            type="recent"
+            transactions={recentTransactions}
+          />
 
-            <AddPaymentModal
-                open={isAddPaymentModalOpen}
-                onOpenChange={setIsAddPaymentModalOpen}
-                onSave={saveFinance}
-            />
-        </div>
+          <AddPaymentModal
+            open={isAddPaymentModalOpen}
+            onOpenChange={setIsAddPaymentModalOpen}
+            onSave={saveFinance}
+          />
+      </div>
     );
 }

@@ -27,11 +27,11 @@ export function useReports() {
     };
 
     const downloadPdfReport = async (
-        type: ReportType,
-        start: Date,
-        end: Date,
-        entityId?: string,
-        customFileName: string = "relatorio"
+      type: ReportType,
+      start: Date,
+      end: Date,
+      entityId?: string,
+      customFileName: string = "relatorio"
     ) => {
         setIsGenerating(true);
         setError(null);
@@ -62,10 +62,10 @@ export function useReports() {
     };
 
     const fetchInternalAnalytics = async <T extends AnalyticsResponse>(
-        type: ReportType,
-        start: Date,
-        end: Date,
-        entityId?: string
+      type: ReportType,
+      start: Date,
+      end: Date,
+      entityId?: string
     ): Promise<T | null> => {
         setIsGenerating(true);
         setError(null);
@@ -77,9 +77,9 @@ export function useReports() {
 
             // Pega o token do mesmo local que o interceptor usa
             const token =
-                Cookies.get('sep.token') ||
-                Cookies.get('token') ||
-                (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+              Cookies.get('sep.token') ||
+              Cookies.get('token') ||
+              (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
 
             const headers: Record<string, string> = {
                 'Content-Type': 'application/json',

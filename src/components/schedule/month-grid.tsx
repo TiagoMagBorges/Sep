@@ -25,62 +25,62 @@ export function MonthGrid({ currentDate, lessons, onGridClick, onLessonSelect }:
     const firstDayOfMonth = new Date(year, month, 1).getDay();
 
     return (
-        <div className="flex flex-col min-w-[700px]">
-            <div className="grid grid-cols-7 gap-1 mb-2">
-                {weekDaysNames.map(day => (
-                    <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
-                        {day}
-                    </div>
-                ))}
-            </div>
-            <div className="grid grid-cols-7 gap-1">
-                {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                    <div key={`empty-${i}`} className="aspect-square bg-muted/20 rounded-lg" />
-                ))}
+      <div className="flex flex-col min-w-[700px]">
+          <div className="grid grid-cols-7 gap-1 mb-2">
+              {weekDaysNames.map(day => (
+                <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
+                    {day}
+                </div>
+              ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                <div key={`empty-${i}`} className="aspect-square bg-muted/20 rounded-lg" />
+              ))}
 
-                {Array.from({ length: daysInMonth }).map((_, index) => {
-                    const day = index + 1;
-                    const targetDate = new Date(year, month, day);
-                    const dateStr = getLocalDateString(targetDate);
-                    const dayLessons = lessons.filter(l => l.dateTime.startsWith(dateStr));
-                    const isToday = dateStr === getLocalDateString(new Date());
+              {Array.from({ length: daysInMonth }).map((_, index) => {
+                  const day = index + 1;
+                  const targetDate = new Date(year, month, day);
+                  const dateStr = getLocalDateString(targetDate);
+                  const dayLessons = lessons.filter(l => l.dateTime.startsWith(dateStr));
+                  const isToday = dateStr === getLocalDateString(new Date());
 
-                    return (
-                        <div
-                            key={day}
-                            className={`aspect-square flex flex-col border rounded-lg p-1.5 hover:bg-accent/50 transition-colors cursor-pointer ${isToday ? "border-2 border-primary bg-primary/5" : "border-border"}`}
-                            onClick={() => onGridClick(targetDate, 14)}
-                        >
-                            <div className={`text-xs font-medium mb-1 ${isToday ? "text-primary" : "text-foreground"}`}>
-                                {day}
-                            </div>
-                            <div className="flex-1 space-y-1 overflow-y-auto no-scrollbar">
-                                {dayLessons.slice(0, 3).map(lesson => {
-                                    const displayName = lesson.studentName
-                                        ? lesson.studentName.split(' ')[0]
-                                        : (lesson.classGroupName || "Turma");
-
-                                    return (
-                                        <div
-                                            key={lesson.id}
-                                            onClick={(e) => { e.stopPropagation(); onLessonSelect(lesson); }}
-                                            className="text-[10px] px-1.5 py-1 rounded truncate transition-opacity hover:opacity-80 bg-blue-100 text-blue-800 border border-blue-200"
-                                            title={`${extractTime(lesson.dateTime)} - ${lesson.studentName || lesson.classGroupName}`}
-                                        >
-                                            <span className="font-semibold">{extractTime(lesson.dateTime)}</span> {displayName}
-                                        </div>
-                                    );
-                                })}
-                                {dayLessons.length > 3 && (
-                                    <div className="text-[10px] text-muted-foreground text-center font-medium">
-                                        +{dayLessons.length - 3} mais
-                                    </div>
-                                )}
-                            </div>
+                  return (
+                    <div
+                      key={day}
+                      className={`aspect-square flex flex-col border rounded-lg p-1.5 hover:bg-accent/50 transition-colors cursor-pointer ${isToday ? "border-2 border-primary bg-primary/5" : "border-border"}`}
+                      onClick={() => onGridClick(targetDate, 14)}
+                    >
+                        <div className={`text-xs font-medium mb-1 ${isToday ? "text-primary" : "text-foreground"}`}>
+                            {day}
                         </div>
-                    );
-                })}
-            </div>
-        </div>
+                        <div className="flex-1 space-y-1 overflow-y-auto no-scrollbar">
+                            {dayLessons.slice(0, 3).map(lesson => {
+                                const displayName = lesson.studentName
+                                  ? lesson.studentName.split(' ')[0]
+                                  : (lesson.classGroupName || "Turma");
+
+                                return (
+                                  <div
+                                    key={lesson.id}
+                                    onClick={(e) => { e.stopPropagation(); onLessonSelect(lesson); }}
+                                    className="text-[10px] px-1.5 py-1 rounded truncate transition-opacity hover:opacity-80 bg-blue-100 text-blue-800 border border-blue-200"
+                                    title={`${extractTime(lesson.dateTime)} - ${lesson.studentName || lesson.classGroupName}`}
+                                  >
+                                      <span className="font-semibold">{extractTime(lesson.dateTime)}</span> {displayName}
+                                  </div>
+                                );
+                            })}
+                            {dayLessons.length > 3 && (
+                              <div className="text-[10px] text-muted-foreground text-center font-medium">
+                                  +{dayLessons.length - 3} mais
+                              </div>
+                            )}
+                        </div>
+                    </div>
+                  );
+              })}
+          </div>
+      </div>
     );
 }

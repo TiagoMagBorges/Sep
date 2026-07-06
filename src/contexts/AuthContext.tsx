@@ -5,9 +5,14 @@ import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import { api } from '@/services/api';
-import { AuthContextData, SignInData, User } from '@/types/Auth';
+import { AuthContextData, SignInData, User, Role } from '@/types/Auth';
 
 const AuthContext = createContext({} as AuthContextData);
+
+interface JWTPayload {
+    sub: string;
+    role: Role;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -19,8 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const token = Cookies.get('sep.token');
 
         if (token) {
-            const decoded = jwtDecode<{ sub: string }>(token);
-            setUser({ id: decoded.sub });
+            const decoded = jwtDecode<JWTPayload>(token);
+            setUser({ id: decoded.sub, role: decoded.role });
             api.defaults.headers.common.Authorization = `Bearer ${token}`;
         }
     }, []);
@@ -32,10 +37,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Cookies.set('sep.token', token, { expires: 1 });
         api.defaults.headers.common.Authorization = `Bearer ${token}`;
 
-        const decoded = jwtDecode<{ sub: string }>(token);
-        setUser({ id: decoded.sub });
+        const decoded = jwtDecode<JWTPayload>(token);
+        setUser({ id: decoded.sub, role: decoded.role });
 
-        router.push('/dashboard');
+        if (decoded.role === 'ADMIN') {
+            router.push('/admin/users');
+        } else {
+            router.push('/dashboard');
+        }
     }
 
     function signOut() {
@@ -46,9 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated, signIn, signOut }}>
-            {children}
-        </AuthContext.Provider>
+      <AuthContext.Provider value={{ user, isAuthenticated, signIn, signOut }}>
+          {children}
+      </AuthContext.Provider>
     );
 }
 

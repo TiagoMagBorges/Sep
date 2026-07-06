@@ -17,10 +17,10 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="pt-BR" className={cn("font-sans", geist.variable)}>
-        <body className="bg-slate-50 text-slate-900 antialiased">
-        <AuthProvider>{children}</AuthProvider>
-        </body>
-        </html>
+      <html lang="pt-BR" className={cn("font-sans", geist.variable)}>
+      <body className="bg-slate-50 text-slate-900 antialiased">
+      <AuthProvider>{children}</AuthProvider>
+      </body>
+      </html>
     );
 }
