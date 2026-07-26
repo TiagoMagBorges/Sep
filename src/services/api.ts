@@ -2,14 +2,15 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('sep.token') ||
-      Cookies.get('token') ||
-      (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+    const token = Cookies.get('sep.token') || Cookies.get('token') || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -17,15 +18,11 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       const requestUrl = error.config?.url || '';
